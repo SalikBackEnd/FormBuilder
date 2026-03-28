@@ -1,0 +1,251 @@
+﻿
+src\app\core\api\form-
+builder-api.ts:32:    
+register(body: 
+RegisterRequest | 
+undefined): Observable
+<TokenResponse> {
+src\app\core\api\form-
+builder-api.ts:62:    
+protected processRegis
+ter(response: 
+HttpResponseBase): Obs
+ervable<TokenResponse>
+ {
+src\app\core\api\form-
+builder-api.ts:88:    
+login(body: 
+LoginRequest | 
+undefined): Observable
+<TokenResponse> {
+src\app\core\api\form-
+builder-api.ts:118:   
+ protected processLogi
+n(response: 
+HttpResponseBase): Obs
+ervable<TokenResponse>
+ {
+src\app\core\api\form-
+builder-api.ts:144:   
+ refresh(body: 
+RefreshRequest | 
+undefined): Observable
+<TokenResponse> {
+src\app\core\api\form-
+builder-api.ts:174:   
+ protected processRefr
+esh(response: 
+HttpResponseBase): Obs
+ervable<TokenResponse>
+ {
+src\app\core\api\form-
+builder-api.ts:199:   
+ logout(): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:224:   
+ protected processLogo
+ut(response: 
+HttpResponseBase): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:246:   
+ formsAll(): 
+Observable<FormDto[]> 
+{
+src\app\core\api\form-
+builder-api.ts:272:   
+ protected processForm
+sAll(response: 
+HttpResponseBase): 
+Observable<FormDto[]> 
+{
+src\app\core\api\form-
+builder-api.ts:305:   
+ formsPOST(body: 
+CreateFormRequest | 
+undefined): 
+Observable<FormDto> {
+src\app\core\api\form-
+builder-api.ts:335:   
+ protected processForm
+sPOST(response: 
+HttpResponseBase): 
+Observable<FormDto> {
+src\app\core\api\form-
+builder-api.ts:360:   
+ formsGET(id: 
+string): 
+Observable<FormDto> {
+src\app\core\api\form-
+builder-api.ts:389:   
+ protected processForm
+sGET(response: 
+HttpResponseBase): 
+Observable<FormDto> {
+src\app\core\api\form-
+builder-api.ts:415:   
+ formsPUT(id: string, 
+body: 
+UpdateFormRequest | 
+undefined): 
+Observable<FormDto> {
+src\app\core\api\form-
+builder-api.ts:448:   
+ protected processForm
+sPUT(response: 
+HttpResponseBase): 
+Observable<FormDto> {
+src\app\core\api\form-
+builder-api.ts:473:   
+ formsDELETE(id: 
+string): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:501:   
+ protected processForm
+sDELETE(response: 
+HttpResponseBase): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:523:   
+ publish(id: string): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:551:   
+ protected processPubl
+ish(response: 
+HttpResponseBase): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:573:   
+ unpublish(id: 
+string): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:601:   
+ protected processUnpu
+blish(response: 
+HttpResponseBase): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:624:   
+ fieldsPOST(formId: 
+string, body: CreateFo
+rmFieldRequest | 
+undefined): Observable
+<FormFieldDto> {
+src\app\core\api\form-
+builder-api.ts:657:   
+ protected processFiel
+dsPOST(response: 
+HttpResponseBase): Obs
+ervable<FormFieldDto> 
+{
+src\app\core\api\form-
+builder-api.ts:683:   
+ fieldsPUT(formId: 
+string, fieldId: 
+string, body: UpdateFo
+rmFieldRequest | 
+undefined): Observable
+<FormFieldDto> {
+src\app\core\api\form-
+builder-api.ts:719:   
+ protected processFiel
+dsPUT(response: 
+HttpResponseBase): Obs
+ervable<FormFieldDto> 
+{
+src\app\core\api\form-
+builder-api.ts:744:   
+ fieldsDELETE(formId: 
+string, fieldId: 
+string): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:775:   
+ protected processFiel
+dsDELETE(response: 
+HttpResponseBase): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:798:   
+ reorder(formId: 
+string, body: 
+ReorderFieldsRequest 
+| undefined): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:830:   
+ protected processReor
+der(response: 
+HttpResponseBase): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:852:   
+ submissionsAll(id: 
+string): Observable<Fo
+rmSubmissionDto[]> {
+src\app\core\api\form-
+builder-api.ts:881:   
+ protected processSubm
+issionsAll(response: 
+HttpResponseBase): Obs
+ervable<FormSubmission
+Dto[]> {
+src\app\core\api\form-
+builder-api.ts:913:   
+ submissions(id: 
+string, submissionId: 
+string): Observable<Fo
+rmSubmissionDto> {
+src\app\core\api\form-
+builder-api.ts:945:   
+ protected processSubm
+issions(response: 
+HttpResponseBase): Obs
+ervable<FormSubmission
+Dto> {
+src\app\core\api\form-
+builder-api.ts:970:   
+ formsGET2(slug: 
+string): 
+Observable<FormDto> {
+src\app\core\api\form-
+builder-api.ts:999:   
+ protected processForm
+sGET2(response: 
+HttpResponseBase): 
+Observable<FormDto> {
+src\app\core\api\form-
+builder-api.ts:1025:  
+  submit(slug: 
+string, body: 
+SubmitFormRequest | 
+undefined): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:1057:  
+  protected processSub
+mit(response: 
+HttpResponseBase): 
+Observable<void> {
+src\app\core\api\form-
+builder-api.ts:1853:fu
+nction throwException(
+message: string, 
+status: number, 
+response: string, 
+headers: { [key: 
+string]: any; }, 
+result?: any): 
+Observable<any> {
+src\app\core\api\form-
+builder-api.ts:1860:fu
+nction 
+blobToText(blob: 
+any): 
+Observable<string> {
+
+

@@ -1,0 +1,130 @@
+@if (isLoading()) {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading form...</p>
+  </div>
+} @else if (form()) {
+  <div class="builder-container">
+    
+    <div class="builder-header">
+      <div class="title-section">
+        <a routerLink="/dashboard" class="back-link">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          Back to Dashboard
+        </a>
+        <h2>{{ form()?.title }}</h2>
+        <p class="subtitle">{{ form()?.description }}</p>
+      </div>
+      
+      @if (!isAddingField()) {
+        <button class="btn-primary" (click)="toggleAddField()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+          Add Field
+        </button>
+      }
+    </div>
+
+    @if (isAddingField()) {
+      <div class="add-field-panel glass-panel">
+        <h3>Add a New Field</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Field Label</label>
+            <input type="text" [ngModel]="newField().label" (ngModelChange)="updateNewField({label: $event})" placeholder="e.g. First Name" required />
+          </div>
+          <div class="form-group">
+            <label>Field Type</label>
+            <select [ngModel]="newField().fieldType" (ngModelChange)="updateNewField({fieldType: $event})">
+              @for (type of fieldTypes; track type) {
+                <option [value]="type">{{ type }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Placeholder Text</label>
+            <input type="text" [ngModel]="newField().placeholder" (ngModelChange)="updateNewField({placeholder: $event})" placeholder="e.g. Enter your name..." />
+          </div>
+          <div class="form-group checkbox-group">
+            <label class="check-container">
+              <input type="checkbox" [ngModel]="newField().isRequired" (ngModelChange)="updateNewField({isRequired: $event})" />
+              <span class="checkmark"></span>
+              Required Field
+            </label>
+          </div>
+        </div>
+
+        @if (newField().fieldType === 'Select' || newField().fieldType === 'Radio' || newField().fieldType === 'Checkbox') {
+          <div class="form-group">
+            <label>Options (comma separated)</label>
+            <input type="text" [ngModel]="newField().options" (ngModelChange)="updateNewField({options: $event})" placeholder="Option 1, Option 2, Option 3" />
+          </div>
+        }
+
+        <div class="panel-actions">
+          <button class="btn-outline" (click)="toggleAddField()">Cancel</button>
+          <button class="btn-primary" [disabled]="!newField().label" (click)="addField()">Save Field</button>
+        </div>
+      </div>
+    }
+
+    <div class="fields-list">
+      @if (fields().length === 0) {
+        <div class="empty-fields">
+          <p>No fields have been added to this form yet.</p>
+        </div>
+      } @else {
+        @for (field of fields(); track field.id; let i = $index) {
+          <div class="field-item glass-panel">
+            
+            <div class="field-controls">
+              <div class="order-controls">
+                <button class="icon-btn" (click)="moveUp(i)" [disabled]="i === 0">▲</button>
+                <button class="icon-btn" (click)="moveDown(i)" [disabled]="i === fields().length - 1">▼</button>
+              </div>
+            </div>
+            
+            <div class="field-content">
+              <label>{{ field.label }} @if (field.isRequired) { <span class="required-star">*</span> }</label>
+              
+              @if (field.fieldType === 'Text' || field.fieldType === 'Email') {
+                <input [type]="field.fieldType === 'Email' ? 'email' : 'text'" [placeholder]="field.placeholder || ''" disabled class="preview-input" />
+              } @else if (field.fieldType === 'Number') {
+                <input type="number" [placeholder]="field.placeholder || ''" disabled class="preview-input" />
+              } @else if (field.fieldType === 'Textarea') {
+                <textarea [placeholder]="field.placeholder || ''" disabled class="preview-input"></textarea>
+              } @else if (field.fieldType === 'Select') {
+                <select disabled class="preview-input">
+                  @if (field.placeholder) { <option>{{ field.placeholder }}</option> }
+                  @for (opt of field.options; track opt) { <option>{{ opt }}</option> }
+                </select>
+              } @else if (field.fieldType === 'Radio' || field.fieldType === 'Checkbox') {
+                <div class="options-preview">
+                  @for (opt of field.options; track opt) {
+                    <label class="preview-option">
+                      <input [type]="field.fieldType === 'Radio' ? 'radio' : 'checkbox'" disabled />
+                      {{ opt }}
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="field-actions">
+              <span class="type-badge">{{ field.fieldType }}</span>
+              <button class="btn-icon danger" (click)="deleteField(field.id!)" title="Delete Field">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+              </button>
+            </div>
+            
+          </div>
+        }
+      }
+    </div>
+
+  </div>
+}

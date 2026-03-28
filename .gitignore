@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /FormBuilder/build.txt
 /FormBuilder/build_errors.txt
+/formbuilder-ui/.vscode

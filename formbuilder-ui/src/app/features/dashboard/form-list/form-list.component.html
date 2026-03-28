@@ -1,0 +1,104 @@
+<div class="list-header">
+  <div>
+    <h1>My Forms</h1>
+    <p class="subtitle">Manage your created forms and view submissions.</p>
+  </div>
+  <button class="btn-primary" (click)="openCreateModal()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+    Create New Form
+  </button>
+</div>
+
+@if (isLoading()) {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading forms...</p>
+  </div>
+} @else {
+  @if (forms().length === 0) {
+    <div class="empty-state glass-panel">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+      </svg>
+      <h3>No forms yet</h3>
+      <p>Create your first form to start collecting data.</p>
+    </div>
+  } @else {
+    <div class="forms-grid">
+      @for (form of forms(); track form.id) {
+        <div class="form-card glass-panel">
+          <div class="card-header">
+            <span class="status-badge" [class.published]="form.isPublished" [class.draft]="!form.isPublished">
+              {{ form.isPublished ? 'Published' : 'Draft' }}
+            </span>
+            <button class="btn-icon" (click)="togglePublish(form)" title="{{ form.isPublished ? 'Unpublish' : 'Publish' }}">
+              @if (!form.isPublished) {
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              }
+            </button>
+          </div>
+          
+          <div class="card-body">
+            <h3>{{ form.title }}</h3>
+            <p class="desc">{{ form.description || 'No description provided.' }}</p>
+          </div>
+
+          <div class="card-footer">
+            <button class="action-link" (click)="editForm(form.id!)">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+              Edit
+            </button>
+            <button class="action-link" (click)="viewSubmissions(form.id!)">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 011.875 1.875v11.25a1.875 1.875 0 01-1.875 1.875H5.625a1.875 1.875 0 01-1.875-1.875V6.375A1.875 1.875 0 015.625 4.5z" /></svg>
+              Results
+            </button>
+            @if (form.isPublished) {
+              <button class="action-link" (click)="copyLink(form.publicSlug!)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+                Link
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+}
+
+<!-- Create Form Modal -->
+@if (showCreateModal()) {
+  <div class="modal-overlay" (click)="closeCreateModal()">
+    <div class="modal-card glass-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Create New Form</h2>
+        <button class="modal-close" (click)="closeCreateModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <form (ngSubmit)="createNewForm()" class="modal-body">
+        <div class="form-group">
+          <label for="formTitle">Title <span class="required-star">*</span></label>
+          <input id="formTitle" type="text" [ngModel]="newFormTitle()" (ngModelChange)="newFormTitle.set($event)" name="formTitle" placeholder="e.g. Customer Feedback Survey" autofocus />
+        </div>
+        <div class="form-group">
+          <label for="formDesc">Description <span class="optional">(optional)</span></label>
+          <textarea id="formDesc" [ngModel]="newFormDescription()" (ngModelChange)="newFormDescription.set($event)" name="formDesc" placeholder="A brief description of the form's purpose..." rows="3"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeCreateModal()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="isCreating() || !newFormTitle().trim()">
+            @if (!isCreating()) {
+              <span>Create Form</span>
+            } @else {
+              <span>Creating&hellip;</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
