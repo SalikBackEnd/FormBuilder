@@ -12,5 +12,6 @@ namespace FormBuilder.Interfaces
         Task DeleteFormAsync(Guid formId, Guid userId);
         Task PublishFormAsync(Guid formId, Guid userId);
         Task UnpublishFormAsync(Guid formId, Guid userId);
+        Task<FormDto> UpdateContactSettingsAsync(Guid formId, UpdateContactSettingsRequest request, Guid userId);
     }
 }

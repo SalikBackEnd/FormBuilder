@@ -7,6 +7,10 @@ namespace FormBuilder.Dtos
         public string Description { get; set; } = string.Empty;
         public string PublicSlug { get; set; } = string.Empty;
         public bool IsPublished { get; set; }
+        public bool CollectSubmitterName { get; set; }
+        public bool CollectSubmitterEmail { get; set; }
+        public bool SubmitterNameRequired { get; set; }
+        public bool SubmitterEmailRequired { get; set; }
         public List<FormFieldDto> Fields { get; set; } = new();
     }
 
@@ -20,5 +24,13 @@ namespace FormBuilder.Dtos
     {
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+    }
+
+    public class UpdateContactSettingsRequest
+    {
+        public bool CollectSubmitterName { get; set; }
+        public bool CollectSubmitterEmail { get; set; }
+        public bool SubmitterNameRequired { get; set; }
+        public bool SubmitterEmailRequired { get; set; }
     }
 }
