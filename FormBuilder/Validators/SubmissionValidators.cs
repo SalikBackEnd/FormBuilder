@@ -8,8 +8,12 @@ namespace FormBuilder.Validators
         public SubmitFormRequestValidator()
         {
             RuleFor(x => x.FormId).NotEmpty();
-            RuleFor(x => x.SubmitterEmail).NotEmpty().EmailAddress();
-            RuleFor(x => x.SubmitterName).NotEmpty().MaximumLength(100);
+            RuleFor(x => x.SubmitterEmail)
+                .EmailAddress().When(x => !string.IsNullOrWhiteSpace(x.SubmitterEmail))
+                .WithMessage("Please enter a valid email address.");
+            RuleFor(x => x.SubmitterName)
+                .MaximumLength(100).When(x => !string.IsNullOrWhiteSpace(x.SubmitterName))
+                .WithMessage("Name cannot exceed 100 characters.");
             RuleFor(x => x.Values).NotNull();
         }
     }
