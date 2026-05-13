@@ -39,8 +39,9 @@ export class FormListComponent implements OnInit {
         this.forms.set(forms);
         this.isLoading.set(false);
       },
-      error: () => {
+      error: (err) => {
         this.isLoading.set(false);
+        this.toast.apiError(err);
       }
     });
   }
@@ -69,9 +70,9 @@ export class FormListComponent implements OnInit {
         this.showCreateModal.set(false);
         this.router.navigate(['/dashboard/builder', form.id]);
       },
-      error: () => {
+      error: (err) => {
         this.isCreating.set(false);
-        this.toast.error('Failed to create form. Please try again.');
+        this.toast.apiError(err);
       }
     });
   }
@@ -86,12 +87,24 @@ export class FormListComponent implements OnInit {
 
   public togglePublish(form: FormDto): void {
     if (form.isPublished) {
-      this.formClient.unpublish(form.id!).subscribe(() => {
-        form.isPublished = false;
+      this.formClient.unpublish(form.id!).subscribe({
+        next: () => {
+          this.forms.update(list =>
+            list.map(f => f.id === form.id ? { ...f, isPublished: false } as FormDto : f)
+          );
+          this.toast.success('Form unpublished.');
+        },
+        error: (err) => this.toast.apiError(err)
       });
     } else {
-      this.formClient.publish(form.id!).subscribe(() => {
-        form.isPublished = true;
+      this.formClient.publish(form.id!).subscribe({
+        next: () => {
+          this.forms.update(list =>
+            list.map(f => f.id === form.id ? { ...f, isPublished: true } as FormDto : f)
+          );
+          this.toast.success('Form published!');
+        },
+        error: (err) => this.toast.apiError(err)
       });
     }
   }

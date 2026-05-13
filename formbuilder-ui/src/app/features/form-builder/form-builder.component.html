@@ -4,127 +4,359 @@
     <p>Loading form...</p>
   </div>
 } @else if (form()) {
-  <div class="builder-container">
-    
-    <div class="builder-header">
-      <div class="title-section">
-        <a routerLink="/dashboard" class="back-link">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-          </svg>
-          Back to Dashboard
-        </a>
-        <h2>{{ form()?.title }}</h2>
-        <p class="subtitle">{{ form()?.description }}</p>
-      </div>
-      
-      @if (!isAddingField()) {
-        <button class="btn-primary" (click)="toggleAddField()">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-          Add Field
+  <div class="builder-page">
+
+    <!-- Top bar -->
+    <div class="builder-topbar">
+      <a routerLink="/dashboard" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="18" height="18">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        Dashboard
+      </a>
+      <div class="topbar-actions">
+        @if (form()?.isPublished) {
+          <button class="btn-outline-sm" (click)="copyPublicLink()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+            Copy Link
+          </button>
+        }
+        <button class="btn-publish" [class.btn-unpublish]="form()?.isPublished" (click)="togglePublish()">
+          {{ form()?.isPublished ? 'Unpublish' : 'Publish' }}
         </button>
-      }
+      </div>
     </div>
 
-    @if (isAddingField()) {
-      <div class="add-field-panel glass-panel">
-        <h3>Add a New Field</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Field Label</label>
-            <input type="text" [ngModel]="newField().label" (ngModelChange)="updateNewField({label: $event})" placeholder="e.g. First Name" required />
-          </div>
-          <div class="form-group">
-            <label>Field Type</label>
-            <select [ngModel]="newField().fieldType" (ngModelChange)="updateNewField({fieldType: $event})">
-              @for (type of fieldTypes; track type) {
-                <option [value]="type">{{ type }}</option>
-              }
-            </select>
-          </div>
-        </div>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label>Placeholder Text</label>
-            <input type="text" [ngModel]="newField().placeholder" (ngModelChange)="updateNewField({placeholder: $event})" placeholder="e.g. Enter your name..." />
-          </div>
-          <div class="form-group checkbox-group">
-            <label class="check-container">
-              <input type="checkbox" [ngModel]="newField().isRequired" (ngModelChange)="updateNewField({isRequired: $event})" />
-              <span class="checkmark"></span>
-              Required Field
-            </label>
-          </div>
+    <!-- Two-panel layout -->
+    <div class="builder-layout">
+
+      <!-- LEFT: Editor panel -->
+      <div class="builder-left">
+
+        <!-- Form meta section -->
+        <div class="panel meta-panel">
+          @if (!isEditingMeta()) {
+            <div class="meta-display">
+              <div class="meta-text">
+                <h2 class="form-title">{{ form()?.title }}</h2>
+                <p class="form-desc">{{ form()?.description || 'No description' }}</p>
+              </div>
+              <button class="icon-btn" (click)="startEditMeta()" title="Edit title and description">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+              </button>
+            </div>
+          } @else {
+            <div class="meta-edit-form">
+              <div class="form-group">
+                <label>Form Title</label>
+                <input type="text" [ngModel]="editTitle()" (ngModelChange)="editTitle.set($event)" placeholder="Form title" />
+              </div>
+              <div class="form-group">
+                <label>Description</label>
+                <textarea [ngModel]="editDescription()" (ngModelChange)="editDescription.set($event)" rows="2" placeholder="Optional description"></textarea>
+              </div>
+              <div class="panel-actions">
+                <button class="btn-outline-sm" (click)="cancelEditMeta()">Cancel</button>
+                <button class="btn-primary-sm" [disabled]="!editTitle().trim() || isSavingMeta()" (click)="saveMeta()">
+                  {{ isSavingMeta() ? 'Saving...' : 'Save' }}
+                </button>
+              </div>
+            </div>
+          }
         </div>
 
-        @if (newField().fieldType === 'Select' || newField().fieldType === 'Radio' || newField().fieldType === 'Checkbox') {
-          <div class="form-group">
-            <label>Options (comma separated)</label>
-            <input type="text" [ngModel]="newField().options" (ngModelChange)="updateNewField({options: $event})" placeholder="Option 1, Option 2, Option 3" />
+        <!-- Contact Fields section -->
+        <div class="section-header">
+          <span class="section-label">Contact Fields</span>
+        </div>
+
+        <div class="panel contact-fields-panel">
+          <!-- Your Name row -->
+          @if (collectName()) {
+            <div class="contact-field-row">
+              <div class="contact-field-info">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                <span class="contact-field-label">Your Name</span>
+                <span class="type-badge">Text</span>
+              </div>
+              <div class="contact-field-actions">
+                <button class="req-toggle" [class.active]="nameRequired()" (click)="toggleNameRequired()" [title]="nameRequired() ? 'Currently required — click to make optional' : 'Currently optional — click to make required'">
+                  {{ nameRequired() ? 'Required' : 'Optional' }}
+                </button>
+                <button class="icon-btn danger" (click)="requestRemoveContactField('name')" title="Remove name field">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="contact-field-removed">
+              <span>Your Name — removed</span>
+              <button class="btn-outline-sm" (click)="addBackContactField('name')">+ Add back</button>
+            </div>
+          }
+
+          <div class="contact-divider"></div>
+
+          <!-- Your Email row -->
+          @if (collectEmail()) {
+            <div class="contact-field-row">
+              <div class="contact-field-info">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+                <span class="contact-field-label">Your Email</span>
+                <span class="type-badge">Email</span>
+              </div>
+              <div class="contact-field-actions">
+                <button class="req-toggle" [class.active]="emailRequired()" (click)="toggleEmailRequired()" [title]="emailRequired() ? 'Currently required — click to make optional' : 'Currently optional — click to make required'">
+                  {{ emailRequired() ? 'Required' : 'Optional' }}
+                </button>
+                <button class="icon-btn danger" (click)="requestRemoveContactField('email')" title="Remove email field">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="contact-field-removed">
+              <span>Your Email — removed</span>
+              <button class="btn-outline-sm" (click)="addBackContactField('email')">+ Add back</button>
+            </div>
+          }
+        </div>
+
+        <!-- Fields section header -->
+        <div class="section-header">
+          <span class="section-label">Fields ({{ fields().length }})</span>
+          @if (!isAddingField()) {
+            <button class="btn-primary-sm" (click)="toggleAddField()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+              Add Field
+            </button>
+          }
+        </div>
+
+        <!-- Add Field panel -->
+        @if (isAddingField()) {
+          <div class="panel add-panel">
+            <h4>New Field</h4>
+            <ng-container *ngTemplateOutlet="fieldForm; context: { $implicit: newField(), update: updateNewField.bind(this), isNew: true }"></ng-container>
+            <div class="panel-actions">
+              <button class="btn-outline-sm" (click)="toggleAddField()">Cancel</button>
+              <button class="btn-primary-sm" [disabled]="!newField().label.trim()" (click)="addField()">Add Field</button>
+            </div>
           </div>
         }
 
-        <div class="panel-actions">
-          <button class="btn-outline" (click)="toggleAddField()">Cancel</button>
-          <button class="btn-primary" [disabled]="!newField().label" (click)="addField()">Save Field</button>
-        </div>
-      </div>
-    }
-
-    <div class="fields-list">
-      @if (fields().length === 0) {
-        <div class="empty-fields">
-          <p>No fields have been added to this form yet.</p>
-        </div>
-      } @else {
-        @for (field of fields(); track field.id; let i = $index) {
-          <div class="field-item glass-panel">
-            
-            <div class="field-controls">
-              <div class="order-controls">
-                <button class="icon-btn" (click)="moveUp(i)" [disabled]="i === 0">▲</button>
-                <button class="icon-btn" (click)="moveDown(i)" [disabled]="i === fields().length - 1">▼</button>
-              </div>
+        <!-- Field list -->
+        <div class="fields-list">
+          @if (fields().length === 0 && !isAddingField()) {
+            <div class="empty-state">
+              <p>No fields yet. Click <strong>Add Field</strong> to start building your form.</p>
             </div>
-            
-            <div class="field-content">
-              <label>{{ field.label }} @if (field.isRequired) { <span class="required-star">*</span> }</label>
-              
-              @if (field.fieldType === 'Text' || field.fieldType === 'Email') {
-                <input [type]="field.fieldType === 'Email' ? 'email' : 'text'" [placeholder]="field.placeholder || ''" disabled class="preview-input" />
-              } @else if (field.fieldType === 'Number') {
-                <input type="number" [placeholder]="field.placeholder || ''" disabled class="preview-input" />
-              } @else if (field.fieldType === 'Textarea') {
-                <textarea [placeholder]="field.placeholder || ''" disabled class="preview-input"></textarea>
-              } @else if (field.fieldType === 'Select') {
-                <select disabled class="preview-input">
-                  @if (field.placeholder) { <option>{{ field.placeholder }}</option> }
-                  @for (opt of field.options; track opt) { <option>{{ opt }}</option> }
-                </select>
-              } @else if (field.fieldType === 'Radio' || field.fieldType === 'Checkbox') {
-                <div class="options-preview">
-                  @for (opt of field.options; track opt) {
-                    <label class="preview-option">
-                      <input [type]="field.fieldType === 'Radio' ? 'radio' : 'checkbox'" disabled />
-                      {{ opt }}
-                    </label>
+          }
+
+          @for (field of fields(); track field.id; let i = $index) {
+            <div class="field-row panel" [class.editing]="editingFieldId() === field.id">
+              <!-- Field row header -->
+              <div class="field-row-header">
+                <div class="field-order-btns">
+                  <button class="icon-btn" (click)="moveUp(i)" [disabled]="i === 0" title="Move up">▲</button>
+                  <button class="icon-btn" (click)="moveDown(i)" [disabled]="i === fields().length - 1" title="Move down">▼</button>
+                </div>
+                <div class="field-row-info">
+                  <span class="field-label-text">{{ field.label }} @if (field.isRequired) { <span class="req-star">*</span> }</span>
+                  <span class="type-badge">{{ field.fieldType }}</span>
+                </div>
+                <div class="field-row-actions">
+                  @if (editingFieldId() !== field.id) {
+                    <button class="icon-btn" (click)="startEditField(field)" title="Edit field">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
+                    </button>
                   }
+                  <button class="icon-btn danger" (click)="deleteField(field.id!)" title="Delete field">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Inline edit panel -->
+              @if (editingFieldId() === field.id) {
+                <div class="edit-panel-body">
+                  <ng-container *ngTemplateOutlet="fieldForm; context: { $implicit: editField(), update: updateEditField.bind(this), isNew: false }"></ng-container>
+                  <div class="panel-actions">
+                    <button class="btn-outline-sm" (click)="cancelEditField()">Cancel</button>
+                    <button class="btn-primary-sm" [disabled]="!editField().label.trim()" (click)="saveEditField(field.id!)">Save</button>
+                  </div>
                 </div>
               }
             </div>
+          }
+        </div>
+      </div>
 
-            <div class="field-actions">
-              <span class="type-badge">{{ field.fieldType }}</span>
-              <button class="btn-icon danger" (click)="deleteField(field.id!)" title="Delete Field">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-              </button>
-            </div>
-            
+      <!-- RIGHT: Live preview panel -->
+      <div class="builder-right">
+        <div class="preview-header">
+          <span class="preview-label">Live Preview</span>
+          <span class="preview-note">Read-only • Reflects your form as visitors see it</span>
+        </div>
+        <div class="preview-card">
+          <div class="preview-form-header">
+            <h2>{{ form()?.title }}</h2>
+            @if (form()?.description) {
+              <p>{{ form()?.description }}</p>
+            }
           </div>
-        }
-      }
-    </div>
 
+          @if (fields().length === 0 && !collectName() && !collectEmail()) {
+            <p class="preview-empty">Add fields to preview your form here.</p>
+          } @else {
+            <div class="preview-fields">
+
+              <!-- Contact fields -->
+              @if (collectName() || collectEmail()) {
+                <div class="preview-contact-section">
+                  @if (collectName()) {
+                    <div class="preview-group">
+                      <label>Your Name @if (nameRequired()) { <span class="req-star">*</span> } @else { <span class="preview-optional">(optional)</span> }</label>
+                      <input type="text" placeholder="John Doe" disabled class="preview-input" />
+                    </div>
+                  }
+                  @if (collectEmail()) {
+                    <div class="preview-group">
+                      <label>Your Email @if (emailRequired()) { <span class="req-star">*</span> } @else { <span class="preview-optional">(optional)</span> }</label>
+                      <input type="email" placeholder="john@example.com" disabled class="preview-input" />
+                    </div>
+                  }
+                </div>
+                @if (fields().length > 0) {
+                  <hr class="preview-divider" />
+                }
+              }
+
+              @for (field of fields(); track field.id) {
+                <div class="preview-group">
+                  <label>
+                    {{ field.label }}
+                    @if (field.isRequired) { <span class="req-star">*</span> }
+                  </label>
+
+                  @if (isSimpleInput(field.fieldType)) {
+                    <input [type]="getPreviewInputType(field.fieldType)" [placeholder]="field.placeholder || ''" disabled class="preview-input" />
+                  }
+                  @if (field.fieldType === 'TextArea') {
+                    <textarea [placeholder]="field.placeholder || ''" rows="3" disabled class="preview-input"></textarea>
+                  }
+                  @if (field.fieldType === 'Dropdown') {
+                    <select disabled class="preview-input">
+                      @if (field.placeholder) { <option>{{ field.placeholder }}</option> }
+                      @for (opt of field.options; track opt) { <option>{{ opt }}</option> }
+                    </select>
+                  }
+                  @if (field.fieldType === 'Radio' || field.fieldType === 'Checkbox') {
+                    <div class="preview-options">
+                      @for (opt of field.options; track opt) {
+                        <label class="preview-opt-label">
+                          <input [type]="field.fieldType === 'Radio' ? 'radio' : 'checkbox'" disabled />
+                          {{ opt }}
+                        </label>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+              <button class="preview-submit" disabled>Submit</button>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
   </div>
 }
+
+<!-- Remove contact field confirmation modal -->
+@if (removeContactFieldPending()) {
+  <div class="modal-overlay" (click)="cancelRemoveContactField()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="28" height="28"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+      </div>
+      <h3 class="modal-title">Remove {{ removeContactFieldPending() === 'name' ? 'Name' : 'Email' }} field?</h3>
+      <p class="modal-body">
+        If you remove this field, you will <strong>not know who submitted</strong> this form unless another field captures their identity.
+        This change takes effect immediately.
+      </p>
+      <div class="modal-actions">
+        <button class="btn-outline-sm" (click)="cancelRemoveContactField()">Cancel</button>
+        <button class="btn-danger-sm" (click)="confirmRemoveContactField()">Proceed</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Reusable field form template -->
+<ng-template #fieldForm let-state let-update="update" let-isNew="isNew">
+  <div class="form-row">
+    <div class="form-group">
+      <label>Label <span class="req-star">*</span></label>
+      <input type="text" [ngModel]="state.label" (ngModelChange)="update({label: $event})" placeholder="e.g. First Name" maxlength="200" />
+      <span class="field-hint" [class.warn]="state.label.length > 180">
+        {{ state.label.length }} / 200 characters
+      </span>
+    </div>
+    <div class="form-group">
+      <label>Type</label>
+      <select [ngModel]="state.fieldType" (ngModelChange)="update({fieldType: $event})">
+        @for (type of fieldTypes; track type) {
+          <option [value]="type">{{ type }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Placeholder</label>
+      <input type="text" [ngModel]="state.placeholder" (ngModelChange)="update({placeholder: $event})" placeholder="e.g. Enter your name..." />
+    </div>
+    <div class="form-group checkbox-group">
+      <label class="check-label">
+        <input type="checkbox" [ngModel]="state.isRequired" (ngModelChange)="update({isRequired: $event})" />
+        Required
+      </label>
+    </div>
+  </div>
+
+  @if (hasOptionsType(state.fieldType)) {
+    <div class="form-group">
+      <label>Options <span class="hint">(comma-separated)</span></label>
+      <input type="text" [ngModel]="state.options" (ngModelChange)="update({options: $event})" placeholder="Option A, Option B, Option C" />
+      <span class="field-hint">Up to 20 options &nbsp;•&nbsp; max 200 characters each</span>
+    </div>
+  }
+
+  @if (hasLengthConstraints(state.fieldType)) {
+    <div class="form-row">
+      <div class="form-group">
+        <label>Min Length</label>
+        <input type="number" [ngModel]="state.minLength" (ngModelChange)="update({minLength: $event})" placeholder="0" min="0" />
+      </div>
+      <div class="form-group">
+        <label>Max Length</label>
+        <input type="number" [ngModel]="state.maxLength" (ngModelChange)="update({maxLength: $event})" placeholder="unlimited" min="0" />
+      </div>
+    </div>
+  }
+
+  @if (hasValueConstraints(state.fieldType)) {
+    <div class="form-row">
+      <div class="form-group">
+        <label>Min Value</label>
+        <input type="number" [ngModel]="state.minValue" (ngModelChange)="update({minValue: $event})" />
+      </div>
+      <div class="form-group">
+        <label>Max Value</label>
+        <input type="number" [ngModel]="state.maxValue" (ngModelChange)="update({maxValue: $event})" />
+      </div>
+    </div>
+  }
+</ng-template>

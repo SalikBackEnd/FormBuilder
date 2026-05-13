@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Client, FormDto, FormSubmissionDto } from '../../core/api/form-builder-api';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-submissions',
@@ -20,7 +21,8 @@ export class SubmissionsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private client: Client
+    private client: Client,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -34,21 +36,19 @@ export class SubmissionsComponent implements OnInit {
   public loadData(): void {
     this.isLoading.set(true);
 
-    // Load form details for the header
     this.client.formsGET(this.formId()).subscribe({
-      next: (f) => {
-        this.form.set(f);
-      }
+      next: (f) => this.form.set(f),
+      error: (err) => this.toast.apiError(err)
     });
 
-    // Load submissions
     this.client.submissionsAll(this.formId()).subscribe({
       next: (subs) => {
         this.submissions.set(subs);
         this.isLoading.set(false);
       },
-      error: () => {
+      error: (err) => {
         this.isLoading.set(false);
+        this.toast.apiError(err);
       }
     });
   }

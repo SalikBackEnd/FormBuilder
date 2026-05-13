@@ -11,7 +11,7 @@
     </div>
 
     <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
-      
+
       <div class="form-row">
         <div class="form-group">
           <label for="firstName">First Name</label>
@@ -38,13 +38,13 @@
         <input type="password" id="confirmPassword" name="confirmPassword" [(ngModel)]="confirmPassword" required placeholder="••••••••" />
       </div>
 
-      <div class="error-message" *ngIf="errorMessage">
-        {{ errorMessage }}
+      <div class="error-message" *ngIf="errorMessage()">
+        {{ errorMessage() }}
       </div>
 
-      <button type="submit" class="btn-primary auth-submit" [disabled]="!registerForm.valid || isLoading">
-        <span *ngIf="!isLoading">Sign Up</span>
-        <span *ngIf="isLoading" class="spinner"></span>
+      <button type="submit" class="btn-primary auth-submit" [disabled]="!registerForm.valid || isLoading()">
+        <span *ngIf="!isLoading()">Sign Up</span>
+        <span *ngIf="isLoading()" class="spinner"></span>
       </button>
 
     </form>

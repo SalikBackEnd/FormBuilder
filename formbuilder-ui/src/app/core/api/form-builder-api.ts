@@ -618,7 +618,66 @@ export class Client {
     }
 
     /**
-     * @param body (optional) 
+     * @param body (optional)
+     * @return OK
+     */
+    contactSettings(id: string, body: UpdateContactSettingsRequest | undefined): Observable<FormDto> {
+        let url_ = this.baseUrl + "/api/my/forms/{id}/contact-settings";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("patch", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processContactSettings(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processContactSettings(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<FormDto>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<FormDto>;
+        }));
+    }
+
+    protected processContactSettings(response: HttpResponseBase): Observable<FormDto> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FormDto.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @param body (optional)
      * @return OK
      */
     fieldsPOST(formId: string, body: CreateFormFieldRequest | undefined): Observable<FormFieldDto> {
@@ -1196,6 +1255,10 @@ export class FormDto implements IFormDto {
     description?: string | undefined;
     publicSlug?: string | undefined;
     isPublished?: boolean;
+    collectSubmitterName?: boolean;
+    collectSubmitterEmail?: boolean;
+    submitterNameRequired?: boolean;
+    submitterEmailRequired?: boolean;
     fields?: FormFieldDto[] | undefined;
 
     constructor(data?: IFormDto) {
@@ -1214,6 +1277,10 @@ export class FormDto implements IFormDto {
             this.description = _data["description"];
             this.publicSlug = _data["publicSlug"];
             this.isPublished = _data["isPublished"];
+            this.collectSubmitterName = _data["collectSubmitterName"];
+            this.collectSubmitterEmail = _data["collectSubmitterEmail"];
+            this.submitterNameRequired = _data["submitterNameRequired"];
+            this.submitterEmailRequired = _data["submitterEmailRequired"];
             if (Array.isArray(_data["fields"])) {
                 this.fields = [] as any;
                 for (let item of _data["fields"])
@@ -1236,6 +1303,10 @@ export class FormDto implements IFormDto {
         data["description"] = this.description;
         data["publicSlug"] = this.publicSlug;
         data["isPublished"] = this.isPublished;
+        data["collectSubmitterName"] = this.collectSubmitterName;
+        data["collectSubmitterEmail"] = this.collectSubmitterEmail;
+        data["submitterNameRequired"] = this.submitterNameRequired;
+        data["submitterEmailRequired"] = this.submitterEmailRequired;
         if (Array.isArray(this.fields)) {
             data["fields"] = [];
             for (let item of this.fields)
@@ -1251,6 +1322,10 @@ export interface IFormDto {
     description?: string | undefined;
     publicSlug?: string | undefined;
     isPublished?: boolean;
+    collectSubmitterName?: boolean;
+    collectSubmitterEmail?: boolean;
+    submitterNameRequired?: boolean;
+    submitterEmailRequired?: boolean;
     fields?: FormFieldDto[] | undefined;
 }
 
@@ -1824,6 +1899,54 @@ export class UpdateFormRequest implements IUpdateFormRequest {
 export interface IUpdateFormRequest {
     title?: string | undefined;
     description?: string | undefined;
+}
+
+export class UpdateContactSettingsRequest implements IUpdateContactSettingsRequest {
+    collectSubmitterName?: boolean;
+    collectSubmitterEmail?: boolean;
+    submitterNameRequired?: boolean;
+    submitterEmailRequired?: boolean;
+
+    constructor(data?: IUpdateContactSettingsRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.collectSubmitterName = _data["collectSubmitterName"];
+            this.collectSubmitterEmail = _data["collectSubmitterEmail"];
+            this.submitterNameRequired = _data["submitterNameRequired"];
+            this.submitterEmailRequired = _data["submitterEmailRequired"];
+        }
+    }
+
+    static fromJS(data: any): UpdateContactSettingsRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateContactSettingsRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["collectSubmitterName"] = this.collectSubmitterName;
+        data["collectSubmitterEmail"] = this.collectSubmitterEmail;
+        data["submitterNameRequired"] = this.submitterNameRequired;
+        data["submitterEmailRequired"] = this.submitterEmailRequired;
+        return data;
+    }
+}
+
+export interface IUpdateContactSettingsRequest {
+    collectSubmitterName?: boolean;
+    collectSubmitterEmail?: boolean;
+    submitterNameRequired?: boolean;
+    submitterEmailRequired?: boolean;
 }
 
 export class ApiException extends Error {

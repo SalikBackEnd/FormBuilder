@@ -1,5 +1,5 @@
 <div class="public-form-page">
-  @if (!isLoading() && !errorMessage() && !isSubmitted()) {
+  @if (!isLoading() && !isSubmitted() && form()) {
     <div class="form-card">
       <div class="form-header">
         <h1>{{ form()?.title }}</h1>
@@ -10,18 +10,32 @@
 
       <form (ngSubmit)="onSubmit()" class="form-body">
         <!-- Contact Info -->
-        <div class="contact-section">
-          <div class="form-group">
-            <label for="submitterName">Your Name <span class="optional">(optional)</span></label>
-            <input id="submitterName" type="text" [ngModel]="submitterName()" (ngModelChange)="submitterName.set($event)" name="submitterName" placeholder="John Doe" />
+        @if (form()?.collectSubmitterName || form()?.collectSubmitterEmail) {
+          <div class="contact-section">
+            @if (form()?.collectSubmitterName) {
+              <div class="form-group">
+                <label for="submitterName">
+                  Your Name
+                  @if (form()?.submitterNameRequired) { <span class="required-star">*</span> }
+                  @else { <span class="optional">(optional)</span> }
+                </label>
+                <input id="submitterName" type="text" [ngModel]="submitterName()" (ngModelChange)="submitterName.set($event)" name="submitterName" placeholder="John Doe" [required]="form()?.submitterNameRequired || false" />
+              </div>
+            }
+            @if (form()?.collectSubmitterEmail) {
+              <div class="form-group">
+                <label for="submitterEmail">
+                  Your Email
+                  @if (form()?.submitterEmailRequired) { <span class="required-star">*</span> }
+                  @else { <span class="optional">(optional)</span> }
+                </label>
+                <input id="submitterEmail" type="email" [ngModel]="submitterEmail()" (ngModelChange)="submitterEmail.set($event)" name="submitterEmail" placeholder="john@example.com" [required]="form()?.submitterEmailRequired || false" />
+              </div>
+            }
           </div>
-          <div class="form-group">
-            <label for="submitterEmail">Your Email <span class="optional">(optional)</span></label>
-            <input id="submitterEmail" type="email" [ngModel]="submitterEmail()" (ngModelChange)="submitterEmail.set($event)" name="submitterEmail" placeholder="john@example.com" />
-          </div>
-        </div>
 
-        <hr class="divider" />
+          <hr class="divider" />
+        }
 
         <!-- Dynamic Fields -->
         @for (field of fields(); track field.id) {
@@ -31,8 +45,8 @@
               @if (field.isRequired) { <span class="required-star">*</span> }
             </label>
 
-            <!-- Text / Email / Number -->
-            @if (field.fieldType !== 'Textarea' && field.fieldType !== 'Select' && field.fieldType !== 'Radio' && field.fieldType !== 'Checkbox') {
+            <!-- Text / Email / Number / Date -->
+            @if (isSimpleInput(field.fieldType)) {
               <input
                 [id]="'field_' + field.id"
                 [type]="getInputType(field.fieldType)"
@@ -45,7 +59,7 @@
             }
 
             <!-- Textarea -->
-            @if (field.fieldType === 'Textarea') {
+            @if (field.fieldType === 'TextArea') {
               <textarea
                 [id]="'field_' + field.id"
                 [ngModel]="fieldValues()[field.id!]"
@@ -57,8 +71,8 @@
               ></textarea>
             }
 
-            <!-- Select -->
-            @if (field.fieldType === 'Select') {
+            <!-- Dropdown -->
+            @if (field.fieldType === 'Dropdown') {
               <select
                 [id]="'field_' + field.id"
                 [ngModel]="fieldValues()[field.id!]"
@@ -129,6 +143,7 @@
       </div>
       <h2>Thank you!</h2>
       <p>Your response has been recorded.</p>
+      <button class="btn-another" (click)="resetForm()">Submit another response</button>
     </div>
   }
 

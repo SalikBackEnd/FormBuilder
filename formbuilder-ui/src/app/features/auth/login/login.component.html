@@ -11,7 +11,7 @@
     </div>
 
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
-      
+
       <div class="form-group">
         <label for="email">Email Address</label>
         <input type="email" id="email" name="email" [(ngModel)]="email" required placeholder="name@example.com" />
@@ -22,13 +22,13 @@
         <input type="password" id="password" name="password" [(ngModel)]="password" required placeholder="••••••••" />
       </div>
 
-      <div class="error-message" *ngIf="errorMessage">
-        {{ errorMessage }}
+      <div class="error-message" *ngIf="errorMessage()">
+        {{ errorMessage() }}
       </div>
 
-      <button type="submit" class="btn-primary auth-submit" [disabled]="!loginForm.valid || isLoading">
-        <span *ngIf="!isLoading">Sign In</span>
-        <span *ngIf="isLoading" class="spinner"></span>
+      <button type="submit" class="btn-primary auth-submit" [disabled]="!loginForm.valid || isLoading()">
+        <span *ngIf="!isLoading()">Sign In</span>
+        <span *ngIf="isLoading()" class="spinner"></span>
       </button>
 
     </form>

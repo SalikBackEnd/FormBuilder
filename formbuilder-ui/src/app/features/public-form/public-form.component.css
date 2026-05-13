@@ -203,6 +203,24 @@
 
 .success-card p {
   color: #94a3b8;
+  margin-bottom: 1.5rem;
+}
+
+.btn-another {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #94a3b8;
+  border-radius: 8px;
+  padding: 0.6rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-another:hover {
+  background: rgba(255,255,255,0.06);
+  color: #f8fafc;
 }
 
 /* Error Card */

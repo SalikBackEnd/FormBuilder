@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Client, FormDto, FormFieldDto, SubmitFormRequest, SubmissionValueDto } from '../../core/api/form-builder-api';
+import { extractApiError } from '../../core/utils/api-error';
 
 @Component({
   selector: 'app-public-form',
@@ -67,7 +68,19 @@ export class PublicFormComponent implements OnInit {
 
   public onSubmit(): void {
     this.errorMessage.set('');
-    
+
+    const f = this.form();
+
+    // Validate required contact fields
+    if (f?.submitterNameRequired && !this.submitterName().trim()) {
+      this.errorMessage.set('"Your Name" is required.');
+      return;
+    }
+    if (f?.submitterEmailRequired && !this.submitterEmail().trim()) {
+      this.errorMessage.set('"Your Email" is required.');
+      return;
+    }
+
     // Validate required fields
     const currentFields = this.fields();
     const currentValues = this.fieldValues();
@@ -98,19 +111,37 @@ export class PublicFormComponent implements OnInit {
         this.isSubmitting.set(false);
         this.isSubmitted.set(true);
       },
-      error: () => {
+      error: (err) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set('Something went wrong. Please try again.');
+        this.errorMessage.set(extractApiError(err).message);
       }
     });
   }
 
   public getInputType(fieldType: string | undefined): string {
-    switch (fieldType?.toLowerCase()) {
-      case 'email': return 'email';
-      case 'number': return 'number';
+    switch (fieldType) {
+      case 'Email': return 'email';
+      case 'Number': return 'number';
+      case 'Date': return 'date';
       default: return 'text';
     }
+  }
+
+  public isSimpleInput(fieldType: string | undefined): boolean {
+    return !['TextArea', 'Dropdown', 'Radio', 'Checkbox'].includes(fieldType || '');
+  }
+
+  public resetForm(): void {
+    const currentFields = this.fields();
+    const values: { [fieldId: string]: string } = {};
+    for (const field of currentFields) {
+      values[field.id!] = '';
+    }
+    this.fieldValues.set(values);
+    this.submitterName.set('');
+    this.submitterEmail.set('');
+    this.errorMessage.set('');
+    this.isSubmitted.set(false);
   }
 
   public toggleCheckbox(fieldId: string, option: string, event: Event): void {
