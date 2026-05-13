@@ -61,6 +61,13 @@ namespace FormBuilder.Controllers
             return NoContent();
         }
 
+        [HttpPatch("{id}/contact-settings")]
+        public async Task<ActionResult<FormDto>> UpdateContactSettings(Guid id, [FromBody] UpdateContactSettingsRequest request)
+        {
+            var form = await _formService.UpdateContactSettingsAsync(id, request, GetUserId());
+            return Ok(form);
+        }
+
         [HttpPost("{id}/publish")]
         public async Task<IActionResult> Publish(Guid id)
         {
