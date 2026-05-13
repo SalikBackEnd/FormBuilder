@@ -1,6 +1,9 @@
 using FormBuilder.Dtos;
 using FormBuilder.Entities;
+using FormBuilder.Exceptions;
 using FormBuilder.Interfaces;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace FormBuilder.Services
 {
@@ -17,7 +20,74 @@ namespace FormBuilder.Services
         {
             var form = (await _unitOfWork.Forms.FindAsync(f => f.PublicSlug == formSlug && f.IsPublished)).FirstOrDefault();
             if (form == null || form.Id != request.FormId)
-                throw new Exception("Form not found, not published, or ID mismatch.");
+                throw new NotFoundException("Form not found or is not published.");
+
+            var fields = (await _unitOfWork.FormFields.FindAsync(f => f.FormId == form.Id)).ToList();
+            var valueMap = request.Values.ToDictionary(v => v.FieldId, v => v.Value ?? "");
+
+            // Validate each field's submitted value against its configuration
+            foreach (var field in fields)
+            {
+                valueMap.TryGetValue(field.Id, out var value);
+                value ??= "";
+
+                if (field.IsRequired && string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException($"'{field.Label}' is required.");
+
+                if (string.IsNullOrWhiteSpace(value))
+                    continue; // Optional field with no value — skip further checks
+
+                switch (field.FieldType)
+                {
+                    case "Email":
+                        if (!Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                            throw new ArgumentException($"'{field.Label}' must be a valid email address.");
+                        break;
+
+                    case "Number":
+                        if (!decimal.TryParse(value, out decimal numVal))
+                            throw new ArgumentException($"'{field.Label}' must be a number.");
+                        if (field.MinValue != 0 && numVal < field.MinValue)
+                            throw new ArgumentException($"'{field.Label}' must be at least {field.MinValue}.");
+                        if (field.MaxValue != 0 && numVal > field.MaxValue)
+                            throw new ArgumentException($"'{field.Label}' must be at most {field.MaxValue}.");
+                        break;
+
+                    case "Date":
+                        if (!DateTime.TryParse(value, out _))
+                            throw new ArgumentException($"'{field.Label}' must be a valid date.");
+                        break;
+
+                    case "Text":
+                    case "TextArea":
+                        if (field.MinLength > 0 && value.Length < field.MinLength)
+                            throw new ArgumentException($"'{field.Label}' must be at least {field.MinLength} characters.");
+                        if (field.MaxLength > 0 && value.Length > field.MaxLength)
+                            throw new ArgumentException($"'{field.Label}' must be at most {field.MaxLength} characters.");
+                        break;
+
+                    case "Dropdown":
+                    case "Radio":
+                        var allowedOptions = string.IsNullOrEmpty(field.OptionsJson)
+                            ? new List<string>()
+                            : JsonSerializer.Deserialize<List<string>>(field.OptionsJson) ?? new List<string>();
+                        if (!allowedOptions.Contains(value))
+                            throw new ArgumentException($"'{field.Label}' contains an invalid option.");
+                        break;
+
+                    case "Checkbox":
+                        var checkboxOptions = string.IsNullOrEmpty(field.OptionsJson)
+                            ? new List<string>()
+                            : JsonSerializer.Deserialize<List<string>>(field.OptionsJson) ?? new List<string>();
+                        var selectedOptions = value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        foreach (var selected in selectedOptions)
+                        {
+                            if (!checkboxOptions.Contains(selected))
+                                throw new ArgumentException($"'{field.Label}' contains an invalid option: '{selected}'.");
+                        }
+                        break;
+                }
+            }
 
             var submission = new FormSubmission
             {
@@ -71,7 +141,7 @@ namespace FormBuilder.Services
 
             var submission = await _unitOfWork.FormSubmissions.GetByIdAsync(submissionId);
             if (submission == null || submission.FormId != formId)
-                throw new Exception("Submission not found.");
+                throw new NotFoundException("Submission not found.");
 
             var values = await _unitOfWork.FormSubmissionValues.FindAsync(v => v.SubmissionId == submissionId);
             return MapToDto(submission, values);

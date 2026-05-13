@@ -1,5 +1,6 @@
 using FormBuilder.Dtos;
 using FormBuilder.Entities;
+using FormBuilder.Exceptions;
 using FormBuilder.Interfaces;
 using System.Text.Json;
 
@@ -30,7 +31,7 @@ namespace FormBuilder.Services
         {
             var form = (await _unitOfWork.Forms.FindAsync(f => f.PublicSlug == slug && f.IsPublished)).FirstOrDefault();
             if (form == null)
-                throw new Exception("Form not found or is not published.");
+                throw new NotFoundException("Form not found or is not published.");
 
             var fields = await _unitOfWork.FormFields.FindAsync(f => f.FormId == form.Id);
             return MapToDto(form, fields.OrderBy(f => f.SortOrder));
@@ -54,6 +55,10 @@ namespace FormBuilder.Services
                 Description = request.Description ?? "",
                 PublicSlug = slug,
                 IsPublished = false,
+                CollectSubmitterName = true,
+                CollectSubmitterEmail = true,
+                SubmitterNameRequired = false,
+                SubmitterEmailRequired = false,
                 CreatedOn = DateTime.UtcNow,
                 CreatedBy = userId
             };
@@ -120,6 +125,26 @@ namespace FormBuilder.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
+        public async Task<FormDto> UpdateContactSettingsAsync(Guid formId, UpdateContactSettingsRequest request, Guid userId)
+        {
+            var form = await _unitOfWork.Forms.GetByIdAsync(formId);
+            if (form == null || form.OwnerUserId != userId)
+                throw new UnauthorizedAccessException("Form not found or access denied.");
+
+            form.CollectSubmitterName = request.CollectSubmitterName;
+            form.CollectSubmitterEmail = request.CollectSubmitterEmail;
+            form.SubmitterNameRequired = request.SubmitterNameRequired;
+            form.SubmitterEmailRequired = request.SubmitterEmailRequired;
+            form.UpdatedOn = DateTime.UtcNow;
+            form.UpdatedBy = userId;
+
+            _unitOfWork.Forms.Update(form);
+            await _unitOfWork.SaveChangesAsync();
+
+            var fields = await _unitOfWork.FormFields.FindAsync(f => f.FormId == formId);
+            return MapToDto(form, fields.OrderBy(f => f.SortOrder));
+        }
+
         private FormDto MapToDto(Form form, IEnumerable<FormField> fields)
         {
             return new FormDto
@@ -129,6 +154,10 @@ namespace FormBuilder.Services
                 Description = form.Description,
                 PublicSlug = form.PublicSlug,
                 IsPublished = form.IsPublished,
+                CollectSubmitterName = form.CollectSubmitterName,
+                CollectSubmitterEmail = form.CollectSubmitterEmail,
+                SubmitterNameRequired = form.SubmitterNameRequired,
+                SubmitterEmailRequired = form.SubmitterEmailRequired,
                 Fields = fields.Select(f => new FormFieldDto
                 {
                     Id = f.Id,

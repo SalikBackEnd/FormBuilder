@@ -1,5 +1,6 @@
 using FormBuilder.Dtos;
 using FormBuilder.Entities;
+using FormBuilder.Exceptions;
 using FormBuilder.Interfaces;
 using FormBuilder.Options;
 using Microsoft.Extensions.Options;
@@ -26,7 +27,7 @@ namespace FormBuilder.Services
         {
             var existingUser = (await _unitOfWork.Users.FindAsync(u => u.Email == request.Email)).FirstOrDefault();
             if (existingUser != null)
-                throw new Exception("User already exists.");
+                throw new ConflictException("An account with this email already exists.");
 
             CreatePasswordHash(request.Password, out string passwordHash, out string passwordSalt);
 
@@ -53,7 +54,7 @@ namespace FormBuilder.Services
         {
             var user = (await _unitOfWork.Users.FindAsync(u => u.Email == request.Email)).FirstOrDefault();
             if (user == null || !VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
-                throw new Exception("Invalid credentials.");
+                throw new UnauthorizedException("Invalid email or password.");
 
             var tokenResponse = await GenerateTokenResponseAsync(user);
             await _unitOfWork.SaveChangesAsync();
@@ -65,20 +66,20 @@ namespace FormBuilder.Services
         {
             var claimsPrincipal = GetPrincipalFromExpiredToken(request.AccessToken);
             if (claimsPrincipal == null)
-                throw new Exception("Invalid access token.");
+                throw new UnauthorizedException("Invalid access token.");
 
             var userIdString = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!Guid.TryParse(userIdString, out Guid userId))
-                throw new Exception("Invalid token claims.");
+                throw new UnauthorizedException("Invalid token claims.");
 
             var user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user == null)
-                throw new Exception("User not found.");
+                throw new NotFoundException("User not found.");
 
             var oldRefreshToken = (await _unitOfWork.RefreshTokens.FindAsync(rt => rt.TokenHash == HashToken(request.RefreshToken) && rt.UserId == userId)).FirstOrDefault();
-            
+
             if (oldRefreshToken == null || oldRefreshToken.RevokedAt != null || oldRefreshToken.UsedAt != null || oldRefreshToken.ExpiresAt < DateTime.UtcNow)
-                throw new Exception("Invalid refresh token.");
+                throw new UnauthorizedException("Refresh token is invalid or has expired.");
 
             // Mark old token as used
             oldRefreshToken.UsedAt = DateTime.UtcNow;

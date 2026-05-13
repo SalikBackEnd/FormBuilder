@@ -1,5 +1,6 @@
 using FormBuilder.Dtos;
 using FormBuilder.Entities;
+using FormBuilder.Exceptions;
 using FormBuilder.Interfaces;
 using System.Text.Json;
 
@@ -58,7 +59,7 @@ namespace FormBuilder.Services
 
             var field = await _unitOfWork.FormFields.GetByIdAsync(fieldId);
             if (field == null || field.FormId != formId)
-                throw new Exception("Field not found.");
+                throw new NotFoundException("Field not found.");
 
             field.Label = request.Label;
             field.FieldType = request.FieldType;
@@ -84,7 +85,7 @@ namespace FormBuilder.Services
 
             var field = await _unitOfWork.FormFields.GetByIdAsync(fieldId);
             if (field == null || field.FormId != formId)
-                throw new Exception("Field not found.");
+                throw new NotFoundException("Field not found.");
 
             _unitOfWork.FormFields.Remove(field);
             await _unitOfWork.SaveChangesAsync();
